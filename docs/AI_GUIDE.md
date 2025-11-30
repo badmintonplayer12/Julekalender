@@ -13,7 +13,7 @@ Et statisk nettsted som viser en julekalender: et grid med luker (typisk 1–24)
 3. **Bruk [ARCHITECTURE.md](./ARCHITECTURE.md)** – modulansvar og dataflyt.
 4. **Se [CSS_GUIDELINES.md](./CSS_GUIDELINES.md)** – tokens, BEM og layout.
 5. **Følg [DATA_FORMAT.md](./DATA_FORMAT.md)** – hvordan `calendar.json` og asset-stier skal se ut.
-
+ 
 ## ⚠️ Kritiske regler
 
 - **Modulgrenser**: `main.js` koordinerer, views renderer, `data-loader.js` henter data, `state.js` lagrer fremdrift. Ikke bland ansvar.
