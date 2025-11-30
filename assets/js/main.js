@@ -1,5 +1,5 @@
 import { init as initRouter, parseHash, updateHash } from './router.js';
-import { loadCalendar, BASE_PATH } from './data-loader.js';
+import { loadCalendar, BASE_PATH } from './data-loader.js?v=2';
 import { getState, updateState, markDayOpened, isDayOpened } from './state.js';
 import { renderCalendarGrid } from './view-calendar-grid.js';
 import { renderDayView } from './view-day.js';
