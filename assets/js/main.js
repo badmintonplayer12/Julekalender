@@ -154,6 +154,7 @@ function ensureFullscreenButton() {
     const active = Boolean(document.fullscreenElement);
     btn.textContent = active ? '✕' : '⛶';
     btn.title = active ? 'Avslutt fullskjerm' : 'Fullskjerm';
+    document.body.classList.toggle('fullscreen-active', active);
   };
   btn.addEventListener('click', () => {
     const active = Boolean(document.fullscreenElement);
