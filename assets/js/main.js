@@ -1,12 +1,12 @@
 import { init as initRouter, parseHash, updateHash } from './router.js';
-import { loadCalendar } from './data-loader.js';
+import { loadCalendar, BASE_PATH } from './data-loader.js';
 import { getState, updateState, markDayOpened, isDayOpened } from './state.js';
 import { renderCalendarGrid } from './view-calendar-grid.js';
 import { renderDayView } from './view-day.js';
 import { isDayAvailable, formatAvailableAt, copyToClipboard } from './utils.js';
 
 const APP_ROOT_ID = 'app';
-const BACKGROUND_PLACEHOLDER = '/assets/media/background.png';
+const BACKGROUND_PLACEHOLDER = `${BASE_PATH}assets/media/background.png`;
 let currentOverlay = null;
 
 async function bootstrap() {

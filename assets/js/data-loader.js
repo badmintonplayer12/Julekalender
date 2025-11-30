@@ -3,7 +3,7 @@ function getBasePath() {
   return path.endsWith('/') ? path : path.replace(/[^/]*$/, '');
 }
 
-const BASE_PATH = getBasePath();
+export const BASE_PATH = getBasePath();
 const CALENDAR_URL = `${BASE_PATH}data/calendar.json`;
 const MEDIA_BASE = `${BASE_PATH}assets/media/`;
 
