@@ -88,16 +88,10 @@ function renderError(message) {
 
 function playOpenEffect(pin) {
   if (!pin || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  const rect = pin.getBoundingClientRect();
-  const effect = document.createElement('div');
-  effect.className = 'open-effect';
-  effect.style.left = `${rect.left + rect.width / 2}px`;
-  effect.style.top = `${rect.top + rect.height / 2}px`;
-  effect.style.position = 'fixed';
-  document.body.appendChild(effect);
-  setTimeout(() => {
-    effect.remove();
-  }, 1400);
+  const glow = document.createElement('div');
+  glow.className = 'bg-glow';
+  document.body.appendChild(glow);
+  setTimeout(() => glow.remove(), 800);
 }
 
 function openOverlay(day, { isOpened, isAvailable, availableAtText, onCopyLink, showBack }) {

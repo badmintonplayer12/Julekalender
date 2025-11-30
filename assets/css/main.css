@@ -99,14 +99,15 @@ button {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  border: 2px solid var(--color-border);
-  background: rgba(255, 255, 255, 0.12);
-  color: var(--color-foreground);
+  border: 0 solid transparent;
+  background: transparent;
+  color: #ffffff;
   display: grid;
   place-items: center;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 0.5px;
-  box-shadow: var(--shadow);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.55);
+  box-shadow: none;
   pointer-events: auto;
   transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease, opacity 120ms ease;
 }
@@ -115,19 +116,22 @@ button {
 .calendar-pin:focus-visible {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
-  box-shadow: var(--shadow-strong);
-  transform: translate(-50%, -50%) scale(1.04);
+  box-shadow: none;
+  transform: translate(-50%, -50%) scale(1.02);
 }
 
 .calendar-pin--locked {
   opacity: 0.5;
   cursor: not-allowed;
-  background: rgba(255, 255, 255, 0.08);
+  background: transparent;
 }
 
 .calendar-pin--opened {
-  border-color: var(--color-success);
-  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25);
+  border-color: transparent;
+  box-shadow: none;
+  font-weight: 500;
+  opacity: 0.55;
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .calendar-pin--today {
@@ -152,9 +156,24 @@ button {
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,255,255,0.6) 0%, rgba(249,115,22,0.35) 40%, rgba(255,255,255,0) 70%);
+  background: radial-gradient(circle, rgba(255,255,255,0) 0%, rgba(249,115,22,0) 40%, rgba(255,255,255,0) 70%);
   pointer-events: none;
-  animation: sparkle 1.4s ease-out forwards;
+  animation: none;
+}
+
+/* Hel-bilde-glød ved klikk */
+.bg-glow {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 50%, rgba(255, 223, 150, 0.55) 0%, rgba(255, 223, 150, 0.32) 45%, rgba(0, 0, 0, 0) 75%);
+  animation: bgGlow 1s ease-out forwards;
+  z-index: 30;
+}
+
+@keyframes bgGlow {
+  from { opacity: 0.85; }
+  to { opacity: 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {

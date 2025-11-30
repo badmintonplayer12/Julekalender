@@ -49,15 +49,8 @@ export function renderCalendarGrid({ calendar, isOpened, isAvailable, onDaySelec
     }
 
     const number = document.createElement('span');
-    number.textContent = day.id;
+    number.textContent = day.id?.replace(/^0+/, '') || day.id;
     pin.appendChild(number);
-
-    if (opened) {
-      const check = document.createElement('span');
-      check.className = 'calendar-pin__check';
-      check.textContent = '✓';
-      pin.appendChild(check);
-    }
 
     pin.addEventListener('click', () => onDaySelected(day, pin));
     overlay.appendChild(pin);

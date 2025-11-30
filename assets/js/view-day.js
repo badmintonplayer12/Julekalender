@@ -20,7 +20,7 @@ export function renderDayView(day, { isOpened, isAvailable, onOpen, onBack, onCo
 
   const title = document.createElement('div');
   title.className = 'day-view__title';
-  title.textContent = day ? `Luke ${day.id}` : 'Ukjent luke';
+  title.textContent = day ? `Luke ${day.id?.replace(/^0+/, '') || day.id}` : 'Ukjent luke';
 
   if (showBack) {
     const back = document.createElement('button');
