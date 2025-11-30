@@ -37,8 +37,8 @@ export function renderCalendarGrid({ calendar, isOpened, isAvailable, onDaySelec
     pin.style.top = `${day.position?.yPercent ?? 50}%`;
     pin.setAttribute('aria-label', `Luke ${day.id}`);
 
-    const opened = isOpened(day.id);
     const available = isAvailable(day);
+    const opened = available && isOpened(day.id);
 
     if (!available) {
       pin.classList.add('calendar-pin--locked');
