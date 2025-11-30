@@ -1,5 +1,11 @@
-const CALENDAR_URL = '/data/calendar.json';
-const MEDIA_BASE = '/assets/media/';
+function getBasePath() {
+  const path = window.location.pathname || '/';
+  return path.endsWith('/') ? path : path.replace(/[^/]*$/, '');
+}
+
+const BASE_PATH = getBasePath();
+const CALENDAR_URL = `${BASE_PATH}data/calendar.json`;
+const MEDIA_BASE = `${BASE_PATH}assets/media/`;
 
 export async function loadCalendar() {
   const res = await fetch(CALENDAR_URL);
