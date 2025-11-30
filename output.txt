@@ -1,0 +1,2084 @@
+Folder Structure
+--------------------------------------------------
+/
+    index.html
+.vscode/
+    settings.json
+assets/
+    css/
+        main.css
+    js/
+        data-loader.js
+        main.js
+        router.js
+        state.js
+        utils.js
+        view-calendar-grid.js
+        view-day.js
+    media/
+        background.png
+        days/
+data/
+    calendar.json
+docs/
+    AI_GUIDE.md
+    ANALYSIS.md
+    ARCHITECTURE.md
+    CSS_GUIDELINES.md
+    DATA_FORMAT.md
+    IMPLEMENTATION.md
+    IMPORT_GUIDE.md
+    README.md
+    ROADMAP.md
+
+
+File Contents
+--------------------------------------------------
+
+
+index.html
+File type: .html
+<!doctype html>
+<html lang="nb">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Julekalender</title>
+  <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+  <div id="app" class="app"></div>
+  <script type="module" src="assets/js/main.js"></script>
+</body>
+</html>
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+.vscode\settings.json
+File type: .json
+{
+    "liveServer.settings.port": 5502
+}
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+assets\css\main.css
+File type: .css
+:root {
+  --color-bg: #0f172a;
+  --color-card: #111827;
+  --color-foreground: #f8fafc;
+  --color-accent: #f97316;
+  --color-muted: #9ca3af;
+  --color-border: #1f2937;
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-overlay: rgba(0, 0, 0, 0.35);
+
+  --font-base: "Segoe UI", system-ui, -apple-system, sans-serif;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --line-height: 1.5;
+
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+
+  --border-radius: 12px;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  --shadow-strong: 0 14px 40px rgba(0, 0, 0, 0.35);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  min-height: 100%;
+  background: var(--color-bg);
+  color: var(--color-foreground);
+  font-family: var(--font-base);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height);
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+  border: none;
+  cursor: pointer;
+  background: none;
+}
+
+.app {
+  min-height: 100vh;
+}
+
+/* Forside / bakgrunn */
+.calendar-bg {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: var(--spacing-lg);
+  background: var(--color-bg);
+}
+
+.calendar-bg__frame {
+  position: relative;
+  width: min(100vw, 1200px);
+  margin: 0 auto;
+}
+
+.calendar-bg__image {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow);
+}
+
+.calendar-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.calendar-pin {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 2px solid var(--color-border);
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--color-foreground);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  box-shadow: var(--shadow);
+  pointer-events: auto;
+  transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease, opacity 120ms ease;
+}
+
+.calendar-pin:hover,
+.calendar-pin:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  box-shadow: var(--shadow-strong);
+  transform: translate(-50%, -50%) scale(1.04);
+}
+
+.calendar-pin--locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.calendar-pin--opened {
+  border-color: var(--color-success);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25);
+}
+
+.calendar-pin--today {
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.3);
+  background: rgba(249, 115, 22, 0.25);
+}
+
+.calendar-pin__check {
+  font-size: 14px;
+  color: var(--color-success);
+}
+
+/* Animasjon */
+@keyframes sparkle {
+  0% { opacity: 0; transform: scale(0.9); }
+  40% { opacity: 1; transform: scale(1.02); }
+  100% { opacity: 0; transform: scale(1.1); }
+}
+
+.open-effect {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,0.6) 0%, rgba(249,115,22,0.35) 40%, rgba(255,255,255,0) 70%);
+  pointer-events: none;
+  animation: sparkle 1.4s ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .calendar-pin,
+  .open-effect {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* Dagvisning */
+.day-view {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding: var(--spacing-lg);
+  gap: var(--spacing-lg);
+  background: linear-gradient(180deg, #0b1220 0%, #0f172a 100%);
+}
+
+.day-view__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.day-view__title {
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.day-view__button {
+  padding: 12px 16px;
+  border-radius: var(--border-radius);
+  background: var(--color-accent);
+  color: #000;
+  box-shadow: var(--shadow);
+}
+
+.day-view__body {
+  display: grid;
+  gap: var(--spacing-md);
+}
+
+.day-view__verse {
+  font-size: 20px;
+  line-height: 1.6;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow);
+}
+
+.day-view__status {
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius);
+  border: 1px dashed var(--color-border);
+  background: rgba(255,255,255,0.05);
+}
+
+.day-view__actions {
+  display: flex;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.day-view__link {
+  padding: 12px 16px;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--color-border);
+  background: var(--color-card);
+  color: var(--color-foreground);
+}
+
+.day-view__copy {
+  padding: 10px 14px;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--color-border);
+  background: var(--color-card);
+}
+
+@media (min-width: 768px) {
+  .calendar-pin {
+    width: 64px;
+    height: 64px;
+  }
+  .day-view__title { font-size: 32px; }
+  .day-view__verse { font-size: 22px; }
+}
+
+/* Overlay */
+.overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-lg);
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 40;
+}
+
+.overlay__panel {
+  width: min(720px, 100%);
+  max-height: 90vh;
+  overflow: auto;
+  background: linear-gradient(180deg, #0c1425 0%, #0d172a 100%);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-strong);
+  padding: var(--spacing-lg);
+}
+
+.overlay .day-view {
+  min-height: auto;
+  padding: 0;
+  gap: var(--spacing-md);
+  background: transparent;
+}
+
+.overlay .day-view__body {
+  gap: var(--spacing-md);
+}
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+assets\js\data-loader.js
+File type: .js
+const CALENDAR_URL = '/data/calendar.json';
+const MEDIA_BASE = '/assets/media/';
+
+export async function loadCalendar() {
+  const res = await fetch(CALENDAR_URL);
+  if (!res.ok) throw new Error(`Failed to load calendar.json (${res.status})`);
+  const data = await res.json();
+  const days = (data.days || []).slice().sort((a, b) => a.id.localeCompare(b.id));
+  return { ...data, days };
+}
+
+export function getMediaUrl(path) {
+  if (!path) return '';
+  if (/^https?:\/\//i.test(path)) return path;
+  return `${MEDIA_BASE}${path}`;
+}
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+assets\js\main.js
+File type: .js
+import { init as initRouter, parseHash, updateHash } from './router.js';
+import { loadCalendar } from './data-loader.js';
+import { getState, updateState, markDayOpened, isDayOpened } from './state.js';
+import { renderCalendarGrid } from './view-calendar-grid.js';
+import { renderDayView } from './view-day.js';
+import { isDayAvailable, formatAvailableAt, copyToClipboard } from './utils.js';
+
+const APP_ROOT_ID = 'app';
+const BACKGROUND_PLACEHOLDER = '/assets/media/background.png';
+let currentOverlay = null;
+
+async function bootstrap() {
+  initRouter(handleRoute);
+  const initialRoute = parseHash(window.location.hash);
+  await handleRoute(initialRoute);
+}
+
+async function ensureCalendarLoaded() {
+  if (getState().calendar) return;
+  const calendar = await loadCalendar();
+  updateState({ calendar });
+}
+
+function mount(element) {
+  const root = document.getElementById(APP_ROOT_ID);
+  root.innerHTML = '';
+  root.appendChild(element);
+}
+
+async function handleRoute(route) {
+  try {
+    await ensureCalendarLoaded();
+    if (route.type === 'root') {
+      const state = getState();
+      const grid = renderCalendarGrid({
+        calendar: state.calendar,
+        isOpened: isDayOpened,
+        isAvailable: (day) => isDayAvailable(day, { now: new Date(), preview: state.previewMode }),
+        onDaySelected: (day, pin) => {
+          const available = isDayAvailable(day, { now: new Date(), preview: state.previewMode });
+          if (!available) return;
+          playOpenEffect(pin);
+          setTimeout(() => updateHash({ type: 'day', id: day.id }), 1200);
+        },
+        backgroundImage: BACKGROUND_PLACEHOLDER ? BACKGROUND_PLACEHOLDER : undefined
+      });
+      mount(grid);
+      closeOverlay(false);
+      return;
+    }
+
+    if (route.type === 'day') {
+      const state = getState();
+      const day = state.calendar?.days.find((d) => d.id === route.id);
+      const available = isDayAvailable(day, { now: new Date(), preview: state.previewMode });
+      // Render grid first so pins stay visible
+      const grid = renderCalendarGrid({
+        calendar: state.calendar,
+        isOpened: isDayOpened,
+        isAvailable: (d) => isDayAvailable(d, { now: new Date(), preview: state.previewMode }),
+        onDaySelected: () => {},
+        backgroundImage: BACKGROUND_PLACEHOLDER ? BACKGROUND_PLACEHOLDER : undefined
+      });
+      mount(grid);
+      openOverlay(day, {
+        isOpened: isDayOpened(route.id),
+        isAvailable: available,
+        availableAtText: formatAvailableAt(day),
+        onCopyLink: () => {
+          const url = `${window.location.origin}${window.location.pathname}#/d/${route.id}`;
+          copyToClipboard(url).catch(() => alert('Kunne ikke kopiere lenken.'));
+        }
+      });
+      return;
+    }
+  } catch (error) {
+    console.error(error);
+    mount(renderError('Kunne ikke laste kalenderen. Prøv å laste siden på nytt.'));
+  }
+}
+
+function renderError(message) {
+  const div = document.createElement('div');
+  div.className = 'day-view';
+  const status = document.createElement('div');
+  status.className = 'day-view__status';
+  status.textContent = message;
+  div.appendChild(status);
+  return div;
+}
+
+function playOpenEffect(pin) {
+  if (!pin || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const rect = pin.getBoundingClientRect();
+  const effect = document.createElement('div');
+  effect.className = 'open-effect';
+  effect.style.left = `${rect.left + rect.width / 2}px`;
+  effect.style.top = `${rect.top + rect.height / 2}px`;
+  effect.style.position = 'fixed';
+  document.body.appendChild(effect);
+  setTimeout(() => {
+    effect.remove();
+  }, 1400);
+}
+
+function openOverlay(day, { isOpened, isAvailable, availableAtText, onCopyLink }) {
+  closeOverlay(false);
+  const overlay = document.createElement('div');
+  overlay.className = 'overlay';
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) {
+      closeOverlay(true);
+    }
+  });
+
+  const panel = document.createElement('div');
+  panel.className = 'overlay__panel';
+
+  const view = renderDayView(day, {
+    isOpened,
+    isAvailable,
+    availableAtText,
+    onOpen: () => markDayOpened(day?.id),
+    onBack: () => closeOverlay(true),
+    onCopyLink
+  });
+
+  panel.appendChild(view);
+  overlay.appendChild(panel);
+
+  document.body.appendChild(overlay);
+  currentOverlay = overlay;
+
+  const onEsc = (ev) => {
+    if (ev.key === 'Escape') {
+      closeOverlay(true);
+    }
+  };
+  overlay._escHandler = onEsc;
+  document.addEventListener('keydown', onEsc);
+}
+
+function closeOverlay(updateHashToRoot = true) {
+  if (currentOverlay) {
+    document.removeEventListener('keydown', currentOverlay._escHandler);
+    currentOverlay.remove();
+    currentOverlay = null;
+  }
+  if (updateHashToRoot) {
+    updateHash({ type: 'root' });
+  }
+}
+
+bootstrap();
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+assets\js\router.js
+File type: .js
+/**
+ * @typedef {{ type: 'root' } | { type: 'day', id: string }} Route
+ */
+
+export function init(onRouteChange) {
+  window.addEventListener('hashchange', () => {
+    onRouteChange(parseHash(window.location.hash));
+  });
+}
+
+export function parseHash(hash) {
+  const value = hash.replace(/^#/, '');
+  if (!value || value === '/') {
+    return { type: 'root' };
+  }
+  const match = value.match(/^\/d\/([^/]+)$/);
+  if (!match) return { type: 'root' };
+  return { type: 'day', id: match[1] };
+}
+
+export function updateHash(route) {
+  if (route.type === 'root') {
+    window.location.hash = '#/';
+    return;
+  }
+  window.location.hash = `#/d/${route.id}`;
+}
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+assets\js\state.js
+File type: .js
+const STORAGE_KEY = 'adventCalendar.opened';
+
+let appState = {
+  calendar: null,
+  currentDayId: null,
+  openedDayIds: new Set(loadOpenedFromStorage()),
+  previewMode: false
+};
+
+export function getState() {
+  return {
+    ...appState,
+    openedDayIds: new Set(appState.openedDayIds)
+  };
+}
+
+export function updateState(updates) {
+  appState = { ...appState, ...updates };
+  return getState();
+}
+
+export function markDayOpened(id) {
+  if (!id) return;
+  const updated = new Set(appState.openedDayIds);
+  updated.add(id);
+  appState = { ...appState, openedDayIds: updated };
+  persistOpened(updated);
+}
+
+export function isDayOpened(id) {
+  return id ? appState.openedDayIds.has(id) : false;
+}
+
+export function setPreviewMode(value) {
+  appState = { ...appState, previewMode: Boolean(value) };
+}
+
+function loadOpenedFromStorage() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  } catch {
+    return [];
+  }
+}
+
+function persistOpened(ids) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(ids)));
+  } catch {
+    // Best effort; ikke kast.
+  }
+}
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+assets\js\utils.js
+File type: .js
+export function isDayAvailable(day, { now = new Date(), preview = false } = {}) {
+  if (!day) return false;
+  if (preview) return true;
+  if (!day.openAt) return true;
+  const openAt = new Date(day.openAt);
+  if (Number.isNaN(openAt.getTime())) return true;
+  // Alle luker åpnes etter 24. desember uansett år
+  const decemberCutoff = new Date(openAt.getFullYear(), 11, 25, 0, 0, 0);
+  if (now >= decemberCutoff) return true;
+  return openAt.getTime() <= now.getTime();
+}
+
+export function formatAvailableAt(day) {
+  if (!day?.openAt) return '';
+  const date = new Date(day.openAt);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleString();
+}
+
+export function copyToClipboard(text) {
+  if (!text) return Promise.reject(new Error('Empty text'));
+  if (navigator?.clipboard?.writeText) {
+    return navigator.clipboard.writeText(text);
+  }
+  return new Promise((resolve, reject) => {
+    try {
+      const tmp = document.createElement('textarea');
+      tmp.value = text;
+      tmp.style.position = 'fixed';
+      tmp.style.opacity = '0';
+      document.body.appendChild(tmp);
+      tmp.select();
+      document.execCommand('copy');
+      document.body.removeChild(tmp);
+      resolve();
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+assets\js\view-calendar-grid.js
+File type: .js
+import { getMediaUrl } from './data-loader.js';
+
+/**
+ * Renderer kalender-grid over bakgrunn.
+ * @param {Object} params
+ * @param {Object} params.calendar - Kalenderdata
+ * @param {function(string): boolean} params.isOpened - Sjekk åpnet status
+ * @param {function(Object): boolean} params.isAvailable - Sjekk tilgjengelighet
+ * @param {function(Object, HTMLElement): void} params.onDaySelected - Callback ved klikk (får day, pin)
+ * @param {string} [params.backgroundImage] - Bakgrunnsbilde-URL
+ * @returns {HTMLElement}
+ */
+export function renderCalendarGrid({ calendar, isOpened, isAvailable, onDaySelected, backgroundImage }) {
+  const container = document.createElement('div');
+  container.className = 'calendar-bg';
+
+  const frame = document.createElement('div');
+  frame.className = 'calendar-bg__frame';
+
+  if (backgroundImage) {
+    const img = document.createElement('img');
+    img.className = 'calendar-bg__image';
+    img.src = backgroundImage;
+    img.alt = 'Julekalender bakgrunn';
+    frame.appendChild(img);
+  }
+
+  const overlay = document.createElement('div');
+  overlay.className = 'calendar-overlay';
+  frame.appendChild(overlay);
+
+  (calendar?.days || []).forEach((day) => {
+    const pin = document.createElement('button');
+    pin.className = 'calendar-pin';
+    pin.type = 'button';
+    pin.style.left = `${day.position?.xPercent ?? 50}%`;
+    pin.style.top = `${day.position?.yPercent ?? 50}%`;
+    pin.setAttribute('aria-label', `Luke ${day.id}`);
+
+    const opened = isOpened(day.id);
+    const available = isAvailable(day);
+
+    if (!available) {
+      pin.classList.add('calendar-pin--locked');
+      pin.disabled = true;
+    }
+    if (opened) {
+      pin.classList.add('calendar-pin--opened');
+    }
+
+    const number = document.createElement('span');
+    number.textContent = day.id;
+    pin.appendChild(number);
+
+    if (opened) {
+      const check = document.createElement('span');
+      check.className = 'calendar-pin__check';
+      check.textContent = '✓';
+      pin.appendChild(check);
+    }
+
+    pin.addEventListener('click', () => onDaySelected(day, pin));
+    overlay.appendChild(pin);
+  });
+
+  container.appendChild(frame);
+  return container;
+}
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+assets\js\view-day.js
+File type: .js
+import { getMediaUrl } from './data-loader.js';
+
+/**
+ * @param {Object|null} day
+ * @param {Object} opts
+ * @param {boolean} opts.isOpened
+ * @param {boolean} opts.isAvailable
+ * @param {function(): void} opts.onOpen
+ * @param {function(): void} opts.onBack
+ * @param {function(): void} opts.onCopyLink
+ * @param {string} [opts.availableAtText]
+ * @returns {HTMLElement}
+ */
+export function renderDayView(day, { isOpened, isAvailable, onOpen, onBack, onCopyLink, availableAtText }) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'day-view';
+
+  const header = document.createElement('div');
+  header.className = 'day-view__header';
+
+  const title = document.createElement('div');
+  title.className = 'day-view__title';
+  title.textContent = day ? `Luke ${day.id}` : 'Ukjent luke';
+
+  const back = document.createElement('button');
+  back.className = 'day-view__button';
+  back.textContent = 'Tilbake';
+  back.addEventListener('click', onBack);
+
+  header.append(title, back);
+  wrapper.appendChild(header);
+
+  const body = document.createElement('div');
+  body.className = 'day-view__body';
+
+  if (!day) {
+    const status = document.createElement('div');
+    status.className = 'day-view__status';
+    status.textContent = 'Fant ikke denne luken.';
+    body.appendChild(status);
+    wrapper.appendChild(body);
+    return wrapper;
+  }
+
+  if (!isAvailable) {
+    const status = document.createElement('div');
+    status.className = 'day-view__status';
+    status.textContent = availableAtText ? `Tilgjengelig fra ${availableAtText}` : 'Ikke tilgjengelig ennå.';
+    body.appendChild(status);
+    wrapper.appendChild(body);
+    return wrapper;
+  }
+
+  if (day.image) {
+    const img = document.createElement('img');
+    img.className = 'day-view__media';
+    img.src = getMediaUrl(day.image);
+    img.alt = day.title || `Luke ${day.id}`;
+    body.appendChild(img);
+  }
+
+  const verse = document.createElement('div');
+  verse.className = 'day-view__verse';
+  verse.textContent = day.body || 'Ingen tekst lagt inn ennå.';
+  body.appendChild(verse);
+
+  const actions = document.createElement('div');
+  actions.className = 'day-view__actions';
+
+  if (day.ctaUrl) {
+    const link = document.createElement('a');
+    link.className = 'day-view__link';
+    link.href = day.ctaUrl;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.textContent = day.ctaLabel || 'Les mer';
+    actions.appendChild(link);
+  }
+
+  const copy = document.createElement('button');
+  copy.className = 'day-view__copy';
+  copy.textContent = 'Kopier lenke';
+  copy.addEventListener('click', onCopyLink);
+  actions.appendChild(copy);
+
+  body.appendChild(actions);
+  wrapper.appendChild(body);
+
+  if (!isOpened) {
+    onOpen?.();
+  }
+
+  return wrapper;
+}
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+assets\media\background.png
+File type: .png
+[Binary/Non-UTF8 file - showing first 500 chars]
+PNG
+
+   
+IHDR         gà­ý (caBX (jumb   jumdc2pa    ª 8qc2pa   6újumb   Gjumdc2ma    ª 8qurn:c2pa:77151ce2-2358-413e-9f50-5b3f59249743   Ájumb   )jumdc2as    ª 8qc2pa.assertions    åjumb   )jumdcbor    ª 8qc2pa.actions.v2    ´cbor¡gactions£factionlc2pa.createdmsoftwareAgent¿dnamefGPT-4oÿqdigitalSourceTypexFhttp://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia¡factionnc2pa.converted   «jumb   (jumdcbor    ª 8qc2pa.hash.data    {cbor¥jexclusi...
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+data\calendar.json
+File type: .json
+{
+  "title": "Julekalender",
+  "description": "24 luker med bibelvers.",
+  "days": [
+    { "id": "01", "title": "1. desember", "teaser": "Liten glede", "openAt": "2024-12-01T00:00:00Z", "body": "Bibelvers for luke 1 (erstatt senere).", "position": { "xPercent": 12, "yPercent": 20 } },
+    { "id": "02", "title": "2. desember", "teaser": "Liten glede", "openAt": "2024-12-02T00:00:00Z", "body": "Bibelvers for luke 2 (erstatt senere).", "position": { "xPercent": 28, "yPercent": 18 } },
+    { "id": "03", "title": "3. desember", "teaser": "Liten glede", "openAt": "2024-12-03T00:00:00Z", "body": "Bibelvers for luke 3 (erstatt senere).", "position": { "xPercent": 45, "yPercent": 16 } },
+    { "id": "04", "title": "4. desember", "teaser": "Liten glede", "openAt": "2024-12-04T00:00:00Z", "body": "Bibelvers for luke 4 (erstatt senere).", "position": { "xPercent": 62, "yPercent": 22 } },
+    { "id": "05", "title": "5. desember", "teaser": "Liten glede", "openAt": "2024-12-05T00:00:00Z", "body": "Bibelvers for luke 5 (erstatt senere).", "position": { "xPercent": 78, "yPercent": 18 } },
+    { "id": "06", "title": "6. desember", "teaser": "Liten glede", "openAt": "2024-12-06T00:00:00Z", "body": "Bibelvers for luke 6 (erstatt senere).", "position": { "xPercent": 18, "yPercent": 32 } },
+    { "id": "07", "title": "7. desember", "teaser": "Liten glede", "openAt": "2024-12-07T00:00:00Z", "body": "Bibelvers for luke 7 (erstatt senere).", "position": { "xPercent": 34, "yPercent": 30 } },
+    { "id": "08", "title": "8. desember", "teaser": "Liten glede", "openAt": "2024-12-08T00:00:00Z", "body": "Bibelvers for luke 8 (erstatt senere).", "position": { "xPercent": 52, "yPercent": 30 } },
+    { "id": "09", "title": "9. desember", "teaser": "Liten glede", "openAt": "2024-12-09T00:00:00Z", "body": "Bibelvers for luke 9 (erstatt senere).", "position": { "xPercent": 70, "yPercent": 32 } },
+    { "id": "10", "title": "10. desember", "teaser": "Liten glede", "openAt": "2024-12-10T00:00:00Z", "body": "Bibelvers for luke 10 (erstatt senere).", "position": { "xPercent": 86, "yPercent": 30 } },
+    { "id": "11", "title": "11. desember", "teaser": "Liten glede", "openAt": "2024-12-11T00:00:00Z", "body": "Bibelvers for luke 11 (erstatt senere).", "position": { "xPercent": 15, "yPercent": 46 } },
+    { "id": "12", "title": "12. desember", "teaser": "Liten glede", "openAt": "2024-12-12T00:00:00Z", "body": "Bibelvers for luke 12 (erstatt senere).", "position": { "xPercent": 30, "yPercent": 44 } },
+    { "id": "13", "title": "13. desember", "teaser": "Liten glede", "openAt": "2024-12-13T00:00:00Z", "body": "Bibelvers for luke 13 (erstatt senere).", "position": { "xPercent": 47, "yPercent": 42 } },
+    { "id": "14", "title": "14. desember", "teaser": "Liten glede", "openAt": "2024-12-14T00:00:00Z", "body": "Bibelvers for luke 14 (erstatt senere).", "position": { "xPercent": 64, "yPercent": 46 } },
+    { "id": "15", "title": "15. desember", "teaser": "Liten glede", "openAt": "2024-12-15T00:00:00Z", "body": "Bibelvers for luke 15 (erstatt senere).", "position": { "xPercent": 80, "yPercent": 44 } },
+    { "id": "16", "title": "16. desember", "teaser": "Liten glede", "openAt": "2024-12-16T00:00:00Z", "body": "Bibelvers for luke 16 (erstatt senere).", "position": { "xPercent": 22, "yPercent": 58 } },
+    { "id": "17", "title": "17. desember", "teaser": "Liten glede", "openAt": "2024-12-17T00:00:00Z", "body": "Bibelvers for luke 17 (erstatt senere).", "position": { "xPercent": 38, "yPercent": 56 } },
+    { "id": "18", "title": "18. desember", "teaser": "Liten glede", "openAt": "2024-12-18T00:00:00Z", "body": "Bibelvers for luke 18 (erstatt senere).", "position": { "xPercent": 55, "yPercent": 58 } },
+    { "id": "19", "title": "19. desember", "teaser": "Liten glede", "openAt": "2024-12-19T00:00:00Z", "body": "Bibelvers for luke 19 (erstatt senere).", "position": { "xPercent": 72, "yPercent": 60 } },
+    { "id": "20", "title": "20. desember", "teaser": "Liten glede", "openAt": "2024-12-20T00:00:00Z", "body": "Bibelvers for luke 20 (erstatt senere).", "position": { "xPercent": 88, "yPercent": 58 } },
+    { "id": "21", "title": "21. desember", "teaser": "Liten glede", "openAt": "2024-12-21T00:00:00Z", "body": "Bibelvers for luke 21 (erstatt senere).", "position": { "xPercent": 28, "yPercent": 72 } },
+    { "id": "22", "title": "22. desember", "teaser": "Liten glede", "openAt": "2024-12-22T00:00:00Z", "body": "Bibelvers for luke 22 (erstatt senere).", "position": { "xPercent": 46, "yPercent": 70 } },
+    { "id": "23", "title": "23. desember", "teaser": "Liten glede", "openAt": "2024-12-23T00:00:00Z", "body": "Bibelvers for luke 23 (erstatt senere).", "position": { "xPercent": 64, "yPercent": 72 } },
+    { "id": "24", "title": "24. desember", "teaser": "Liten glede", "openAt": "2024-12-24T00:00:00Z", "body": "Bibelvers for luke 24 (erstatt senere).", "position": { "xPercent": 50, "yPercent": 84 } }
+  ]
+}
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+docs\AI_GUIDE.md
+File type: .md
+# AI Guide – Start her før implementering
+
+Dette dokumentet gir en rask oversikt over hvordan du skal jobbe med julekalender-prosjektet. Les dette først, og bruk lenkene videre for detaljer.
+
+## 🎯 Hva er prosjektet?
+
+Et statisk nettsted som viser en julekalender: et grid med luker (typisk 1–24) som åpnes etter en gitt dato (`openAt`). Hver luke kan inneholde tekst, bilde/media og en lenke/CTA. Ingen build-verktøy eller eksterne dependencies.
+
+## 📋 Hvor starter jeg?
+
+1. **Les [ROADMAP.md](./ROADMAP.md)** – rekkefølgen på oppgaver.
+2. **Sjekk [IMPLEMENTATION.md](./IMPLEMENTATION.md)** – funksjonssignaturer og patterns.
+3. **Bruk [ARCHITECTURE.md](./ARCHITECTURE.md)** – modulansvar og dataflyt.
+4. **Se [CSS_GUIDELINES.md](./CSS_GUIDELINES.md)** – tokens, BEM og layout.
+5. **Følg [DATA_FORMAT.md](./DATA_FORMAT.md)** – hvordan `calendar.json` og asset-stier skal se ut.
+
+## ⚠️ Kritiske regler
+
+- **Modulgrenser**: `main.js` koordinerer, views renderer, `data-loader.js` henter data, `state.js` lagrer fremdrift. Ikke bland ansvar.
+- **BEM-navn**: bruk `block__element--modifier` (f.eks. `.calendar-grid__card`). Ingen ad-hoc klassenavn.
+- **Låse-logikk**: én helper for å avgjøre om en luke er låst (`openAt`, evt. preview/override). Ikke spre dato-sjekk i flere filer.
+- **URL-bygging**: bruk helper fra `data-loader.js` (`getMediaUrl`) for alle bilder/media, ikke hardkod stier.
+- **State**: lagret fremdrift i localStorage skal håndteres via `state.js` (sett/les åpne luker). Views skal ikke skrive direkte.
+
+## 🗺️ Dokumentoversikt
+
+| Fil | Bruk når du trenger... |
+|-----|------------------------|
+| **[ROADMAP.md](./ROADMAP.md)** | Rekkefølge på oppgaver og milepæler |
+| **[IMPLEMENTATION.md](./IMPLEMENTATION.md)** | Signaturer, helpers og kode-patterns |
+| **[ARCHITECTURE.md](./ARCHITECTURE.md)** | Modulansvar, dataflyt, ruting |
+| **[CSS_GUIDELINES.md](./CSS_GUIDELINES.md)** | Tokens, BEM, komponent- og layoutmønstre |
+| **[DATA_FORMAT.md](./DATA_FORMAT.md)** | Struktur på `calendar.json` og filstier for media |
+| **[README.md](./README.md)** | Overordnet prosjektbeskrivelse og bruk |
+
+## 🚀 Arbeidsflyt
+
+1. Velg neste punkt i ROADMAP, les målet.
+2. Slå opp relevante signaturer i IMPLEMENTATION og UI-klasser i CSS_GUIDELINES.
+3. Implementer i korrekt modul. Hold ansvar rent.
+4. Test i nettleser der ROADMAP ber om det (🌐).
+5. Oppdater ROADMAP (avkryss) når oppgaven er ferdig.
+
+## 🔍 Rask referanse
+
+- **Er en luke åpen?** → `isDayAvailable(day, now, previewMode)` i IMPLEMENTATION/`state.js`.
+- **Hvordan hente data?** → `loadCalendar()` i `data-loader.js`.
+- **Hvilken hash brukes?** → `/#/` for grid, `/#/d/<id>` for dag.
+- **Hvor lagres fremdrift?** → localStorage-key i `state.js` (se IMPLEMENTATION).
+- **Hvilke klassenavn?** → seksjonen “Komponenter” i CSS_GUIDELINES.
+
+## ⚡ Påminnelser
+
+- Ikke finn opp nye patterns uten å oppdatere docs.
+- Ikke hardkod datoer eller ID-er i views; alt kommer fra data.
+- Bevar modulgrenser: views kaller callbacks, `main.js` eier URL/state.
+- Hold nye funksjoner korte og beskrivende; kommenter kun det som er uklart.
+
+Start med [ROADMAP.md](./ROADMAP.md) og arbeid i rekkefølge.
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+docs\ANALYSIS.md
+File type: .md
+# Analyse av julekalender-prosjektet
+
+## Formål og målgruppe
+
+- **Formål**: En enkel, nettbasert julekalender der hver luke inneholder et lite innholdsstykke (tekst, bilde, lenke eller media).
+- **Målgruppe**: Familier, kollegaer eller små grupper som vil dele et lett tilgjengelig kalenderformat uten innlogging eller app-installasjon.
+- **Krav**: Skal fungere på mobil først, være selvdokumenterende og kunne hostes statisk (f.eks. GitHub Pages).
+
+## Brukerflyt
+
+1. Forsiden viser alle luker (typisk 1–24) som kort.
+2. Låste luker viser dato/ikon; åpne luker viser status.
+3. Klikk på en tilgjengelig luke åpner detaljvisningen.
+4. URL oppdateres med hash slik at en spesifikk luke kan deles.
+5. Åpne luker lagres lokalt (localStorage) slik at fremdriften beholdes.
+
+## Nøkkelfunksjoner å beholde
+
+- **Låsing per dato (`openAt`)**: Ett konsistent sted for å sjekke om en luke er tilgjengelig.
+- **Enkel datamodell**: Én `calendar.json` som beskriver alle luker; stier peker til `assets/media/`.
+- **Hash-ruting**: `/#/` for grid, `/#/d/<id>` for lukevisning.
+- **LocalStorage**: Lagre åpne luker og evt. preview-modus for redaktører.
+- **Responsivt UI**: Grid som skalerer fra mobil til desktop uten horisontal scroll.
+
+## Antatte rammer
+
+- Ingen backend; alt innhold er statisk.
+- Ingen byggsteg eller avhengigheter; ren HTML/CSS/JS.
+- Nettverkskrav: kun GET av statiske filer (data + media).
+- Tidssoner: `openAt` lagres som ISO UTC og evalueres i frontend.
+
+## Risikoer og hensyn
+
+- **Tidssone-avvik**: Brukere i ulike soner kan oppleve åpning tidligere/senere. Løsning: vis lokal tid, men lagre `openAt` i UTC.
+- **Store mediafiler**: Optimaliser bilder; unngå tunge video/lyd uten behov.
+- **Deling av lenker**: Hash-routing krever at `calendar.json` lastes før visning; håndter feil med bruker-vennlig melding.
+- **Tilgjengelighet**: Sørg for kontrast, fokus-stiler og alt-tekst på bilder.
+
+## Mulige utvidelser
+
+- Enkel “preview”-toggle for redaktører (åpne alle luker uavhengig av dato).
+- Delingsknapp (Web Share / kopier lenke).
+- Lettvekts animasjon eller snøeffekt ved åpning av luke.
+- Service worker for offline-modus når alt innhold er statisk tilgjengelig.
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+docs\ARCHITECTURE.md
+File type: .md
+# Arkitektur
+
+Denne filen beskriver den tekniske arkitekturen til julekalender-prosjektet.
+
+## TL;DR – mental modell
+
+- **Router** tolker hash-URL (`/#/` og `/#/d/<id>`).
+- **Data-lag** henter `calendar.json` og bygger mediestier.
+- **Views** renderer kalender-grid og dagvisning.
+- **main.js** koordinerer ruting, state og rendering.
+
+## Arkitekturoversikt
+
+Prosjektet er en modulær, statisk app uten rammeverk. Hver fil har tydelig ansvar:
+
+- **Model/Data**: `data-loader.js` (fetch + URL-bygger) og `state.js` (app-state + lagring).
+- **View**: `view-calendar-grid.js` og `view-day.js` håndterer DOM-rendering.
+- **Controller**: `main.js` og `router.js` koordinerer ruter, state og callbacks.
+
+Prinsipper:
+- Statisk hosting, ingen backend.
+- Ingen eksterne dependencies/build-verktøy.
+- Hash-routing for delbare URL-er.
+- localStorage for å lagre åpne luker.
+
+## Komponenter
+
+### main.js
+**Rolle**: entry point og koordinator.
+
+**Ansvar**:
+- Initialisere router og state.
+- Håndtere ruteendringer og laste data.
+- Kalle riktig view med callbacks.
+
+### router.js
+**Rolle**: hash-basert ruting.
+
+**Ansvar**:
+- Lytte på `hashchange`.
+- Parse hash til `Route`.
+- Oppdatere hash ved navigasjon.
+
+**Route-typer**:
+```javascript
+type Route =
+  | { type: "root" }
+  | { type: "day"; id: string };
+```
+
+URL-eksempler:
+- `/#/` → root/grid
+- `/#/d/01` → dag 01
+
+### state.js
+**Rolle**: runtime-state og persistens.
+
+**Ansvar**:
+- Holde `AppState` i minne (nåværende dag, kalenderdata).
+- Lese/lagre åpne luker i localStorage.
+- Gi helpers for å oppdatere state kontrollert.
+
+**AppState**:
+```javascript
+type AppState = {
+  calendar: CalendarData | null;
+  currentDayId: string | null;
+  openedDayIds: Set<string>;
+  previewMode: boolean;
+};
+```
+
+### data-loader.js
+**Rolle**: hente data og bygge stier.
+
+**Ansvar**:
+- `loadCalendar()` → fetch `data/calendar.json`.
+- `getMediaUrl(path)` → prefiks for alle mediafiler.
+- Feilhåndtering for manglende filer.
+
+### utils.js
+**Rolle**: små, rene helpers.
+
+**Ansvar**:
+- `isDayAvailable(day, { now, preview })` – ett sted for låse-logikk.
+- Evt. formateringsfunksjoner (dato/klokkeslett) for UI.
+
+### view-calendar-grid.js
+**Rolle**: vise kalendergrid.
+
+**Ansvar**:
+- Renderer kort for hver dag (åpen/låst status).
+- Viser cover/teaser/nummer.
+- Kaller `onDaySelected(id)` callback ved klikk.
+
+### view-day.js
+**Rolle**: vise innhold for én dag.
+
+**Ansvar**:
+- Renderer tittel, dato, tekst og media.
+- Viser status (låst/åpen) og knapp for å åpne om tilgjengelig.
+- Kaller callbacks for navigasjon (tilbake) og markering av åpning.
+
+## Dataflyt
+
+1. **Oppstart**: `main.init()` → start router.
+2. **Root-rute**: `loadCalendar()` hentes; `view-calendar-grid` renderer med låste/åpne statuser.
+3. **Dag-rute**: `state` oppdateres med valgt dag → `view-day` renderer:
+   - Sjekker tilgjengelighet (`openAt` vs. nå/preview).
+   - Viser innhold eller låst tilstand.
+   - Ved åpning: marker dag som åpnet i state + localStorage.
+4. **Navigasjon**: Views kaller callbacks → `main` oppdaterer state og hash.
+
+## Routing
+
+- Root: `/#/`
+- Dag: `/#/d/<id>`
+
+Parsing og bygging av hash gjøres kun i `router.js`.
+
+## Filstruktur
+
+```
+/julekalender/
+  index.html
+  /assets/css/main.css
+  /assets/js/
+    main.js
+    router.js
+    state.js
+    data-loader.js
+    utils.js
+    view-calendar-grid.js
+    view-day.js
+  /assets/media/days/<id>/*
+  /data/calendar.json
+```
+
+## Designvalg
+
+- **Hash-routing**: fungerer uten serverkonfig; lett å dele lenker.
+- **localStorage**: enkelt og offline-vennlig for å lagre åpne luker.
+- **Modulær struktur**: klar separasjon gjør kode lett å vedlikeholde og utvide.
+- **Ingen build**: kort feedback-loop, enkel hosting (GitHub Pages el.l.).
+
+## Vedlikeholdstips
+
+- Splitt opp filer som vokser over ~400–500 linjer.
+- Hold helpers “rene” (pure) der det er mulig.
+- Dokumenter nye patterns i disse filene når de etableres.
+- Views skal ikke ha egen datahenting eller direkte localStorage-tilgang.
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+docs\CSS_GUIDELINES.md
+File type: .md
+# CSS Guidelines
+
+Retningslinjer for styling av julekalenderen. Følg disse mønstrene for å holde stilarket konsistent og lett å vedlikeholde.
+
+## Struktur
+
+Sorter `assets/css/main.css` slik:
+1. Design tokens (`:root`)
+2. Reset/base
+3. Layout-komponenter
+4. View-spesifikke stiler
+5. Utilities
+
+## Design tokens
+
+Bruk variabler for alt av farger, spacing og typografi.
+
+```css
+:root {
+  --color-bg: #0f172a;
+  --color-card: #111827;
+  --color-foreground: #f8fafc;
+  --color-accent: #f97316;
+  --color-muted: #9ca3af;
+  --color-border: #1f2937;
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+
+  --font-base: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-size-base: 16px;
+  --font-size-sm: 14px;
+  --font-size-lg: 18px;
+  --line-height: 1.5;
+
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+
+  --border-radius: 12px;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+```
+
+Tilpass farger etter tema, men legg nye verdier inn som variabler før bruk.
+
+## Navngivning (BEM)
+
+- Blocks: `.calendar-grid`, `.calendar-card`, `.day-view`.
+- Elements: `.calendar-card__number`, `.day-view__media`.
+- Modifiers: `.calendar-card--locked`, `.calendar-card--opened`.
+- Utilities: `.u-hidden`, `.u-text-center`, `.u-flex`.
+
+Ingen improviserte klassenavn; hold deg til BEM-mønsteret.
+
+## Base-stiler
+
+```css
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { min-height: 100%; font-family: var(--font-base); background: var(--color-bg); color: var(--color-foreground); }
+img { max-width: 100%; display: block; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; border: none; cursor: pointer; background: none; }
+```
+
+## Layout-komponenter
+
+### Kalender-grid
+
+```css
+.calendar-grid {
+  display: grid;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg);
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+}
+
+.calendar-card {
+  position: relative;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
+  padding: var(--spacing-md);
+  box-shadow: var(--shadow);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.calendar-card:hover { transform: translateY(-2px); box-shadow: 0 12px 36px rgba(0, 0, 0, 0.3); }
+.calendar-card--locked { opacity: 0.7; }
+.calendar-card--opened { border-color: var(--color-success); }
+
+.calendar-card__number { font-size: 32px; font-weight: 700; margin-bottom: var(--spacing-sm); }
+.calendar-card__title { font-size: var(--font-size-lg); margin-bottom: var(--spacing-xs); }
+.calendar-card__teaser { color: var(--color-muted); font-size: var(--font-size-sm); }
+.calendar-card__badge {
+  position: absolute;
+  top: var(--spacing-sm);
+  right: var(--spacing-sm);
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: var(--font-size-sm);
+  background: rgba(255,255,255,0.08);
+}
+```
+
+### Dagvisning
+
+```css
+.day-view {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--color-bg);
+}
+
+.day-view__header {
+  padding: var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.day-view__body {
+  padding: var(--spacing-lg);
+  display: grid;
+  gap: var(--spacing-lg);
+}
+
+.day-view__media {
+  width: 100%;
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  background: #000;
+}
+
+.day-view__content {
+  display: grid;
+  gap: var(--spacing-md);
+  line-height: var(--line-height);
+}
+
+.day-view__actions {
+  display: flex;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+
+.day-view__button {
+  padding: 12px 16px;
+  border-radius: var(--border-radius);
+  background: var(--color-accent);
+  color: #000;
+}
+
+.day-view__status {
+  padding: var(--spacing-md);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--border-radius);
+  background: rgba(255,255,255,0.05);
+}
+```
+
+### Responsivt
+
+Bruk mobile-first:
+```css
+@media (min-width: 768px) {
+  .calendar-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+  .day-view__body { grid-template-columns: 1fr 1fr; align-items: start; }
+}
+```
+
+## Interaksjon og tilstand
+
+- **Fokus**: `outline: 2px solid var(--color-accent); outline-offset: 2px;` på fokuserbare elementer.
+- **Hover/aktiv**: lett transform/opacity på kort og knapper.
+- **Låst**: `.calendar-card--locked` og `.day-view__status` for å signalisere kommende dato.
+- **Åpnet**: `.calendar-card--opened` eller en badge som sier “Åpnet”.
+
+## Utilities (bruk sparsomt)
+
+```css
+.u-hidden { display: none !important; }
+.u-text-center { text-align: center !important; }
+.u-flex { display: flex !important; align-items: center; gap: var(--spacing-sm); }
+.u-muted { color: var(--color-muted) !important; }
+```
+
+## Beste praksis
+
+- Gjenbruk tokens; ingen hardkodede verdier når en variabel finnes.
+- Hold komponentstiler samlet; unngå globale tag-selectors utover base-stil.
+- Ikke bruk `!important` med mindre du dokumenterer hvorfor.
+- Test på mobil, nettbrett og desktop (375px / 768px / 1280px+).
+- Unngå overdrevet animasjon; korte (150–250ms) overganger er nok for åpne/lukk-tilstander.
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+docs\DATA_FORMAT.md
+File type: .md
+# Data Format
+
+Denne filen beskriver JSON-formatet som brukes av julekalenderen.
+
+## Oversikt
+
+- Kalenderdata ligger i `data/calendar.json`.
+- Mediafiler (bilder/lyd/video) refereres med relative stier (se nedenfor).
+- Ingen andre JSON-filer kreves.
+
+## calendar.json
+
+Topnivå:
+
+```json
+{
+  "title": "Min Julekalender 2024",
+  "description": "Kort tekst som vises på forsiden (valgfritt)",
+  "days": [ Day, Day, ... ]
+}
+```
+
+### Day-objekt
+
+```json
+{
+  "id": "01",
+  "title": "1. desember",
+  "teaser": "Pepperkaker",
+  "openAt": "2024-12-01T00:00:00Z",
+  "coverImage": "days/01/cover.jpg",
+  "image": "days/01/main.jpg",
+  "body": "Kort tekst eller flere setninger om dagens luke.",
+  "ctaLabel": "Les mer",
+  "ctaUrl": "https://example.com/oppskrift",
+  "extraMedia": ["days/01/bonus.mp3"],
+  "position": {
+    "xPercent": 42.5,
+    "yPercent": 38.0
+  }
+}
+```
+
+Feltbeskrivelser:
+- `id` (påkrevd): unik streng for dagen. Anbefalt format: to-sifret (“01”, “24”) for naturlig sortering.
+- `title` (påkrevd): visningsnavn i dagvisning.
+- `teaser` (valgfritt): kort tekst som vises på kortet i gridet.
+- `openAt` (valgfritt): ISO 8601 UTC-tidspunkt når luken blir tilgjengelig. Hvis utelatt → alltid åpen. Bruk format `YYYY-MM-DDTHH:mm:ssZ`.
+- `coverImage` (valgfritt): lite bilde/ikon for gridet.
+- `image` (valgfritt): hovedbilde i dagvisningen.
+- `body` (valgfritt): fri tekst. Kan inneholde linjeskift (`\n`).
+- `ctaLabel` / `ctaUrl` (valgfritt): knapp/lenke i dagvisningen.
+- `extraMedia` (valgfritt): array av ekstra mediafiler (video/lyd/bilder) som kan listes opp eller brukes videre.
+- `position` (påkrevd for forside): `{ xPercent, yPercent }` posisjon for knappen på bakgrunnsbildet. Verdier 0–100 (prosent av bredde/høyde). Dette gjør at lukene følger bakgrunnsbildet på tvers av skjermstørrelser.
+
+Alle mediastier er relative til `assets/media/`. Eksempel: `days/01/main.jpg` refererer til `assets/media/days/01/main.jpg`.
+
+### Eksempel på komplett calendar.json
+
+```json
+{
+  "title": "Familiekalender 2024",
+  "description": "24 små gleder frem mot julaften.",
+  "days": [
+    {
+      "id": "01",
+      "title": "1. desember",
+      "teaser": "Pepperkake-søndag",
+      "openAt": "2024-12-01T00:00:00Z",
+      "coverImage": "days/01/cover.jpg",
+      "image": "days/01/main.jpg",
+      "body": "Bak pepperkaker og pynt dem med melis.",
+      "ctaLabel": "Se oppskrift",
+      "ctaUrl": "https://example.com/oppskrift"
+    },
+    {
+      "id": "02",
+      "title": "2. desember",
+      "teaser": "Quiz",
+      "openAt": "2024-12-02T00:00:00Z",
+      "body": "Test julekunnskapen din med fem spørsmål."
+    }
+  ]
+}
+```
+
+## Regler og beste praksis
+
+- **ID-er**: bruk to-sifret streng for desember-dager (“01”–“24”). Flere luker kan legges til, men behold unikhet.
+- **Stier**: alle filstier skal være URL-vennlige (kebab-case, ingen mellomrom). Legg filer under `assets/media/`.
+- **openAt**: bruk UTC for stabilitet. Frontend kan konvertere til lokal tid for visning.
+- **Manglende media**: hvis `coverImage` mangler, vis et ikon/nummer. Hvis `image` mangler, vis bare teksten.
+- **Låsing**: en luke er tilgjengelig når `openAt` er tom eller i fortiden, eller dersom en eventuell “preview/override”-modus er aktiv (se IMPLEMENTATION). Etter 24. desember er alle luker åpne uansett `openAt`.
+
+## Validering (anbefalt)
+
+Minimumskrav per dag:
+- `id`
+- `title`
+
+Annet er valgfritt, men sørg for at stier peker til faktiske filer. JSON må være gyldig UTF-8/ASCII og parsebar i nettleseren.
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+docs\IMPLEMENTATION.md
+File type: .md
+# Implementasjonsguide
+
+Hvordan koden skal organiseres og hvilke signaturer som gjelder for julekalender-prosjektet. Følg mønstrene under; ikke innfør nye varianter uten å oppdatere denne filen.
+
+## Prinsipper
+
+- Moderne JavaScript (ES modules, `const`/`let`, arrow functions).
+- Named exports, ingen default exports.
+- Små, fokuserte funksjoner (<50 linjer).
+- Ingen direkte DOM-manipulasjon i data/state-moduler.
+- BEM-klassenavn fra [CSS_GUIDELINES.md](./CSS_GUIDELINES.md).
+
+## Moduloversikt
+
+### main.js
+Entry point og koordinator. Ingen egen DOM-rendering.
+
+```javascript
+import { init as initRouter, parseHash, updateHash } from './router.js';
+import { loadCalendar } from './data-loader.js';
+import { getState, updateState, markDayOpened, isDayOpened } from './state.js';
+import { renderCalendarGrid } from './view-calendar-grid.js';
+import { renderDayView } from './view-day.js';
+import { isDayAvailable } from './utils.js'; // helper for låsing
+
+export async function init() {
+  initRouter(handleRoute);
+  const initial = parseHash(window.location.hash);
+  await handleRoute(initial);
+}
+
+export async function handleRoute(route) {
+  const root = document.getElementById('app');
+  root.innerHTML = '';
+
+  if (!getState().calendar) {
+    const calendar = await loadCalendar();
+    updateState({ calendar });
+  }
+
+  if (route.type === 'root') {
+    const view = renderCalendarGrid({
+      calendar: getState().calendar,
+      isOpened: isDayOpened,
+      isAvailable: (day) => isDayAvailable(day, { now: new Date(), preview: getState().previewMode })
+    }, (id) => updateHash({ type: 'day', id }));
+    root.appendChild(view);
+  } else if (route.type === 'day') {
+    const day = getState().calendar?.days.find(d => d.id === route.id);
+    const view = renderDayView(day, {
+      isOpened: isDayOpened(day?.id),
+      isAvailable: isDayAvailable(day, { now: new Date(), preview: getState().previewMode }),
+      onOpen: () => markDayOpened(route.id),
+      onBack: () => updateHash({ type: 'root' })
+    });
+    root.appendChild(view);
+  }
+}
+```
+
+### router.js
+Hash-basert ruting.
+
+```javascript
+/**
+ * @typedef {{ type: 'root' } | { type: 'day', id: string }} Route
+ */
+
+export function init(onRouteChange) {
+  window.addEventListener('hashchange', () => onRouteChange(parseHash(location.hash)));
+}
+
+export function parseHash(hash) {
+  const value = hash.replace(/^#/, '');
+  if (!value || value === '/')
+    return { type: 'root' };
+  const match = value.match(/^\/d\/([^/]+)$/);
+  if (!match) return { type: 'root' };
+  return { type: 'day', id: match[1] };
+}
+
+export function updateHash(route) {
+  if (route.type === 'root') {
+    window.location.hash = '#/';
+  } else {
+    window.location.hash = `#/d/${route.id}`;
+  }
+}
+```
+
+### state.js
+Holder runtime-state og lagrer åpne luker i localStorage.
+
+```javascript
+const STORAGE_KEY = 'adventCalendar.opened';
+
+let appState = {
+  calendar: null,
+  currentDayId: null,
+  openedDayIds: new Set(loadOpenedFromStorage()),
+  previewMode: false
+};
+
+export function getState() { return { ...appState, openedDayIds: new Set(appState.openedDayIds) }; }
+export function updateState(updates) { appState = { ...appState, ...updates }; return getState(); }
+
+export function loadOpenedFromStorage() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+  catch { return []; }
+}
+
+function persistOpened(ids) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(Array.from(ids)));
+}
+
+export function markDayOpened(id) {
+  if (!id) return;
+  const updated = new Set(appState.openedDayIds);
+  updated.add(id);
+  appState = { ...appState, openedDayIds: updated };
+  persistOpened(updated);
+}
+
+export function isDayOpened(id) {
+  return id ? appState.openedDayIds.has(id) : false;
+}
+```
+
+### data-loader.js
+Henter kalenderdata og bygger URL-er til media.
+
+```javascript
+const CALENDAR_URL = '/data/calendar.json';
+const MEDIA_BASE = '/assets/media/';
+
+export async function loadCalendar() {
+  const res = await fetch(CALENDAR_URL);
+  if (!res.ok) throw new Error(`Failed to load calendar.json (${res.status})`);
+  const data = await res.json();
+  data.days = (data.days || []).sort((a, b) => a.id.localeCompare(b.id));
+  return data;
+}
+
+export function getMediaUrl(path) {
+  if (!path) return '';
+  if (/^https?:\/\//.test(path)) return path;
+  return `${MEDIA_BASE}${path}`;
+}
+```
+
+### utils.js
+Samler små helpers (låsing, datoformat).
+
+```javascript
+export function isDayAvailable(day, { now = new Date(), preview = false } = {}) {
+  if (!day) return false;
+  if (preview) return true;
+  if (!day.openAt) return true;
+  const openAt = new Date(day.openAt);
+  return !isNaN(openAt.getTime()) && openAt.getTime() <= now.getTime();
+}
+```
+
+### view-calendar-grid.js
+Renderer lukene over bakgrunnsbildet. Skal ikke hente data eller skrive til localStorage.
+
+```javascript
+import { getMediaUrl } from './data-loader.js';
+
+/**
+ * @param {Object} params
+ * @param {Object} params.calendar - Kalenderdata
+ * @param {function(string): boolean} params.isOpened - Sjekk åpnet status
+ * @param {function(Object): boolean} params.isAvailable - Sjekk tilgjengelighet
+ * @param {function(Object, HTMLElement): void} params.onDaySelected - Callback ved klikk (day, pin)
+ * @param {string} [params.backgroundImage] - Bakgrunnsbilde-URL
+ */
+export function renderCalendarGrid({ calendar, isOpened, isAvailable, onDaySelected, backgroundImage }) {
+  const container = document.createElement('div');
+  container.className = 'calendar-bg';
+  if (backgroundImage) container.style.backgroundImage = `url('${backgroundImage}')`;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'calendar-overlay';
+  container.appendChild(overlay);
+
+  (calendar?.days || []).forEach((day) => {
+    const pin = document.createElement('button');
+    pin.className = 'calendar-pin';
+    pin.style.left = `${day.position?.xPercent ?? 50}%`;
+    pin.style.top = `${day.position?.yPercent ?? 50}%`;
+    pin.setAttribute('aria-label', `Luke ${day.id}`);
+
+    const opened = isOpened(day.id);
+    const available = isAvailable(day);
+    if (!available) pin.classList.add('calendar-pin--locked');
+    if (opened) pin.classList.add('calendar-pin--opened');
+
+    pin.textContent = day.id;
+    pin.addEventListener('click', () => onDaySelected(day, pin));
+    container.appendChild(pin);
+  });
+
+  return container;
+}
+```
+
+### view-day.js
+Renderer én dag. Viser låst-tilstand når `isAvailable` er false.
+
+```javascript
+import { getMediaUrl } from './data-loader.js';
+
+export function renderDayView(day, { isOpened, isAvailable, onOpen, onBack }) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'day-view';
+
+  const header = document.createElement('div');
+  header.className = 'day-view__header';
+  header.textContent = day?.title || 'Ukjent dag';
+
+  const back = document.createElement('button');
+  back.className = 'day-view__button';
+  back.textContent = 'Tilbake';
+  back.addEventListener('click', onBack);
+  header.appendChild(back);
+
+  const body = document.createElement('div');
+  body.className = 'day-view__body';
+
+  if (!day) {
+    body.textContent = 'Fant ikke denne luken.';
+  } else if (!isAvailable) {
+    const status = document.createElement('div');
+    status.className = 'day-view__status';
+    status.textContent = 'Ikke tilgjengelig ennå.';
+    body.appendChild(status);
+  } else {
+    if (day.image) {
+      const media = document.createElement('img');
+      media.className = 'day-view__media';
+      media.src = getMediaUrl(day.image);
+      media.alt = day.title;
+      body.appendChild(media);
+    }
+
+    const content = document.createElement('div');
+    content.className = 'day-view__content';
+    if (day.body) {
+      day.body.split('\n').forEach(line => {
+        const p = document.createElement('p');
+        p.textContent = line.trim();
+        content.appendChild(p);
+      });
+    }
+    body.appendChild(content);
+
+    if (day.ctaUrl) {
+      const actions = document.createElement('div');
+      actions.className = 'day-view__actions';
+      const btn = document.createElement('a');
+      btn.className = 'day-view__button';
+      btn.href = day.ctaUrl;
+      btn.textContent = day.ctaLabel || 'Åpne';
+      btn.target = '_blank';
+      actions.appendChild(btn);
+      body.appendChild(actions);
+    }
+
+    if (!isOpened) {
+      onOpen?.();
+    }
+  }
+
+  wrapper.append(header, body);
+  return wrapper;
+}
+```
+
+## Feilhåndtering
+
+- Logg fetch-feil til konsollen og vis en enkel feilmelding i UI.
+- Ved ugyldig `calendar.json`: vis “Kunne ikke laste kalenderen” og ikke krasj appen.
+- Manglende bilder: sett `onerror`-fallback til et nøytralt ikon/bakgrunn.
+
+## Eventer og callbacks
+
+- Views skal kun kalle callbacks (`onDaySelected`, `onOpen`, `onBack`). Ingen direkte hash- eller state-endringer.
+- `main.js` eier all URL/state-manipulasjon.
+
+## Testing (manuell)
+
+- Start siden og verifiser at grid lastes uten feil i Network-tab.
+- Åpne en tilgjengelig dag og sjekk at `opened` status lagres (localStorage).
+- Sett en `openAt` i fremtiden og verifiser låst visning.
+- Del/lim inn `/#/d/<id>` og bekreft at riktig dag åpnes.
+
+## Beste praksis
+
+1. Hold helpers rene (ingen DOM sideeffekter).
+2. Navn skal være selvforklarende; kommenter kun komplisert logikk.
+3. Ikke dupliser låse-/tilgjengelighetslogikk; bruk `isDayAvailable`.
+4. Sørg for at klassenavn samsvarer med CSS-guiden.
+5. Oppdater dokumentasjonen hvis du etablerer nye mønstre.
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+docs\IMPORT_GUIDE.md
+File type: .md
+# Import Guide – Legg til nye luker
+
+Hvordan du legger til nytt innhold i julekalenderen på en trygg og konsistent måte.
+
+## Kort oppskrift
+
+1. Lag en mappe for dagen under `assets/media/days/<id>/`.
+2. Plasser bilder/lyd/video i mappen (bruk web-vennlige filnavn).
+3. Oppdater `data/calendar.json` med felter for den nye dagen (se nedenfor).
+4. Test lokalt at luken vises, låses opp på riktig tidspunkt og at lenker/bilder fungerer.
+
+## Navn og stier
+
+- **ID**: bruk to-sifret streng: `01`, `02`, … `24`. Unike ID-er kreves.
+- **Mapper**: `assets/media/days/<id>/` (ingen mellomrom eller spesialtegn). Eksempel: `assets/media/days/07/cover.jpg`.
+- **Filnavn**: bruk kebab-case eller tall (`main.jpg`, `cover.jpg`, `quiz-audio.mp3`).
+- **Stier i JSON**: relative til `assets/media/`, f.eks. `"coverImage": "days/07/cover.jpg"`.
+
+## Oppdatere calendar.json
+
+Legg til et nytt objekt i `days`-arrayen:
+
+```json
+{
+  "id": "07",
+  "title": "7. desember",
+  "teaser": "Quizkveld",
+  "openAt": "2024-12-07T00:00:00Z",
+  "coverImage": "days/07/cover.jpg",
+  "image": "days/07/main.jpg",
+  "body": "Quizkveld med gløgg og pepperkaker.",
+  "ctaLabel": "Start quizen",
+  "ctaUrl": "https://example.com/quiz"
+}
+```
+
+Husk å sortere luker etter `id` (stigende). `loadCalendar()` vil sortere ved innlasting, men hold filen ryddig.
+
+## Låsing med openAt
+
+- Sett `openAt` til et ISO-8601 tidspunkt i UTC: `YYYY-MM-DDTHH:mm:ssZ`.
+- Utelat `openAt` hvis luken skal være åpen fra start.
+- For test/preview kan du bruke en egen “previewMode” flagg i state (se IMPLEMENTATION).
+
+## Godkjenningsliste før du pusher
+
+- [ ] `id` er unik og to-sifret.
+- [ ] `openAt` er korrekt og i fremtiden hvis luken skal låses.
+- [ ] Alle stier i JSON peker til faktiske filer under `assets/media/`.
+- [ ] Bilder er optimalisert for web (typisk < 1 MB).
+- [ ] Lokal test viser riktig status (låst/åpen) og innhold.
+
+## Feilsøking
+
+- **Bilde vises ikke**: sjekk stien i JSON og at filen ligger under `assets/media/`.
+- **Luken er alltid låst**: verifiser `openAt` (tidssone og dato), og at systemklokken er riktig.
+- **Rekkefølge er feil**: sørg for at `id` er to-sifret og at data er sortert.
+
+## Rydding og arkivering
+
+For å deaktivere en luke uten å slette den:
+- Fjern den fra `days`-arrayen, eller
+- Sett en svært fremtidig `openAt`.
+
+Bevar mediafilene hvis de kan brukes senere; ellers slett ubrukte filer fra `assets/media/` for å holde repoet lett.
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+docs\README.md
+File type: .md
+# Julekalender
+
+Et enkelt, statisk nettsted for å presentere en julekalender med daglige luker som åpnes på nett. Løsningen bruker ren HTML, CSS og JavaScript, uten build-verktøy eller eksterne avhengigheter.
+
+## Prosjektoversikt
+
+- **Kalendergrid**: Viser alle luker (f.eks. 1–24) med dato, tittel og et lite bilde/ikon.
+- **Låsing per dato**: Hver luke kan ha et `openAt`-tidspunkt. Før den er tilgjengelig vises en låst tilstand.
+- **Dagvisning**: Åpne en luke for å se tekst, bilde/media og eventuell lenke/CTA.
+- **Lagring i nettleser**: Lokal lagring av hvilke luker som er åpnet, slik at brukeren beholder fremdriften.
+- **Responsivt**: Fungerer på mobil, nettbrett og desktop uten scrolling på hovedflaten.
+- **Hash-routing**: URL-er kan dele både forsiden (`/#/`) og en spesifikk dag (`/#/d/01`).
+
+Planlagte tillegg som kan aktiveres senere:
+- Animasjoner/snow/lyd ved åpning av luke
+- Deleknapp (kopier lenke/bruk Web Share API)
+- Offline/PWA-støtte med enkel service worker
+- Mulighet for forhåndsvisning/”åpne alle” for redaktører
+
+## Data og innhold
+
+- Kalenderdata ligger i `data/calendar.json` (se [DATA_FORMAT.md](./DATA_FORMAT.md)).
+- Mediefiler (bilder/video/lyd) legges under `assets/media/`, gjerne sortert per dag (`assets/media/days/01/...`).
+- All ruting er klient-side; ingen server kreves utover statisk hosting.
+
+## Filstruktur (anbefalt)
+
+```
+/julekalender/
+  index.html
+  /assets/
+    /css/main.css
+    /js/
+      main.js
+      router.js
+      state.js
+      data-loader.js
+      utils.js
+      view-calendar-grid.js
+      view-day.js
+    /media/
+      /days/
+        01/
+          cover.jpg
+          main.jpg
+        02/
+          ...
+  /data/
+    calendar.json
+```
+
+## Hurtigstart
+
+```bash
+git clone <repository-url>
+cd julekalender
+python -m http.server 8000   # eller npx http-server -p 8000
+# åpne http://localhost:8000
+```
+
+1. Legg inn eller oppdater `data/calendar.json`.
+2. Plasser tilhørende bilder/medier i `assets/media/`.
+3. Åpne forsiden for å se gridet og test at luker som er åpnet vises som forventet.
+
+## Legge til nye luker
+
+- Se [IMPORT_GUIDE.md](./IMPORT_GUIDE.md) for stegvis prosess.
+- Se [DATA_FORMAT.md](./DATA_FORMAT.md) for felter og eksempler.
+
+Kortversjon:
+1. Lag en mappe under `assets/media/days/<id>/` med innholdet for dagen.
+2. Oppdater `data/calendar.json` med id, tittel, tidspunkt (`openAt`) og referanser til media/tekst.
+3. Verifiser lokalt at låsing og rendering fungerer.
+
+## Brukerflyt
+
+1. Forsiden viser alle luker. Låste luker er markert; åpne luker viser status.
+2. Klikk på en tilgjengelig luke for detaljvisning.
+3. URL oppdateres (hash) slik at du kan dele en bestemt dag.
+4. Fremdrift (åpnede luker) lagres automatisk lokalt.
+
+## Støttede plattformer
+
+Moderne nettlesere på mobil, nettbrett og desktop. Ingen støtte for eldre IE/legacy.
+
+## Dokumentasjon
+
+- [ARCHITECTURE.md](./ARCHITECTURE.md) – Teknisk struktur og modulansvar
+- [IMPLEMENTATION.md](./IMPLEMENTATION.md) – Funksjonssignaturer og patterns
+- [CSS_GUIDELINES.md](./CSS_GUIDELINES.md) – Design tokens og BEM-mønstre
+- [DATA_FORMAT.md](./DATA_FORMAT.md) – JSON-formatet for kalender og luker
+- [ROADMAP.md](./ROADMAP.md) – Arbeidsplan og milepæler
+
+## Lisens
+
+Privat prosjekt – ingen redistribusjon.
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
+
+
+docs\ROADMAP.md
+File type: .md
+# Roadmap
+
+Arbeidsplan for julekalender-prosjektet. Følg rekkefølgen i fasene med mindre annet er avtalt.
+
+## Fase 1: Grunnstruktur
+
+- [ ] **1.1** Oppsett av filer og mapper  
+  - Opprett `index.html`, `assets/css/main.css`, `assets/js/*`, `data/calendar.json`.
+- [ ] **1.2** Ruting og oppstart  
+  - Implementer `router.js` (hash-parsing) og `main.init()` som lytter på ruter.
+- [ ] **1.3** Datahenting  
+  - `data-loader.js` med `loadCalendar()` + `getMediaUrl()`. Vis feil på skjerm hvis `calendar.json` ikke kan lastes.
+- [ ] **1.4** Grid-view  
+  - `view-calendar-grid.js` som viser alle luker med status (låst/åpen/åpnet).
+- [ ] **1.5** Dagvisning  
+  - `view-day.js` som viser tittel, tekst, media og CTA. Håndter låst-tilstand og “tilbake”-navigasjon.
+- [ ] **1.6** State og lagring  
+  - `state.js` som lagrer åpne luker i localStorage. Egen helper for låse-logikk (`isDayAvailable`).
+- [ ] **1.7** Grunnleggende styling  
+  - Mobile-first layout, BEM-klasser, mørk/lys bakgrunn etter tokens. Ingen horisontal scroll.
+- [ ] **1.8** Posisjoner for luker  
+  - Les posisjonstabell (prosentbasert) fra data og plasser 24 tap-targets på bakgrunnsbildet. Test at tapp/klikk treffer riktig på mobil og desktop.
+
+## Fase 2: Opplevelse og robusthet
+
+- [ ] **2.1** Låse-feedback  
+  - Vis tydelig tidspunkt for når luken åpnes hvis den er låst. Håndter ugyldig/manglende `openAt`.
+- [ ] **2.2** Deling  
+  - Legg til knapp som kopierer lenke til aktiv dag (bruk hash). Fallback til alert ved manglende Clipboard API.
+- [ ] **2.3** Nullstill fremdrift  
+  - Knapp/lenke for å slette localStorage-innslag (åpne luker).
+- [ ] **2.4** Tilgjengelighet  
+  - Fokus-stiler, alt-tekster, ARIA-labels på knapper. Minimum kontrast på tekst/knapper.
+- [ ] **2.5** Responsiv justering  
+  - Juster grid-kolonner og dag-layout for nettbrett/desktop. Test 375px, 768px, 1280px.
+- [ ] **2.6** Åpne-animasjon  
+  - Implementer glitter/gavepapir/glød ved åpning (1–2s), med fallback hvis animasjon feiler/deaktiveres (`prefers-reduced-motion`). Naviger til dag etter animasjonen.
+- [ ] **2.7** Kopier lenke  
+  - “Kopier lenke” i dagvisningen (Clipboard API + fallback alert) for deling av `/#/d/<id>`.
+
+## Fase 3: Finpuss (valgfritt)
+
+- [ ] **3.1** Animasjon/snøeffekt  
+  - Lett animasjon ved åpning av luke. Kort og diskret (<300ms).
+- [ ] **3.2** Offline/PWA  
+  - Enkel service worker som cacher HTML, CSS, JS, `calendar.json` og media. Versjonsbump ved endring.
+- [ ] **3.3** Preview-modus  
+  - Lokal toggle (lagres i localStorage) som åpner alle luker uansett `openAt`.
+- [ ] **3.4** Feilhåndtering for media  
+  - Fallback-bilde/ikon hvis media feiler, og bruker-vennlig melding i dagvisning.
+- [ ] **3.5** Dato/time-travel testing  
+  - Test desember-datoer ved å simulere klokke (DevTools/overstyr `now`), bekreft låsing 1–24 og at alt åpnes etter 24. des.
+
+## Testing (anbefalt)
+
+- [ ] Last forsiden og sjekk at `calendar.json` fetches uten feil (DevTools Network).
+- [ ] Åpne en tilgjengelig dag og se at status “Åpnet” lagres etter reload.
+- [ ] Sett en `openAt` i fremtiden og bekreft låst visning.
+- [ ] Besøk `/#/d/<id>` direkte og verifiser korrekt rendering + håndtering av manglende ID.
+- [ ] Test på mobil-bredde (375px) og desktop.
+
+
+--------------------------------------------------
+File End
+--------------------------------------------------
