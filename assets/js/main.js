@@ -8,8 +8,10 @@ import { isDayAvailable, formatAvailableAt, copyToClipboard } from './utils.js';
 const APP_ROOT_ID = 'app';
 const BACKGROUND_PLACEHOLDER = `${BASE_PATH}assets/media/background.png`;
 let currentOverlay = null;
+let fullscreenButton = null;
 
 async function bootstrap() {
+  ensureFullscreenButton();
   initRouter(handleRoute);
   const initialRoute = parseHash(window.location.hash);
   await handleRoute(initialRoute);
@@ -141,6 +143,30 @@ function closeOverlay(updateHashToRoot = true) {
   if (updateHashToRoot) {
     updateHash({ type: 'root' });
   }
+}
+
+function ensureFullscreenButton() {
+  if (fullscreenButton) return;
+  const btn = document.createElement('button');
+  btn.className = 'fullscreen-btn';
+  btn.type = 'button';
+  const updateLabel = () => {
+    const active = Boolean(document.fullscreenElement);
+    btn.textContent = active ? '✕' : '⛶';
+    btn.title = active ? 'Avslutt fullskjerm' : 'Fullskjerm';
+  };
+  btn.addEventListener('click', () => {
+    const active = Boolean(document.fullscreenElement);
+    if (active) {
+      document.exitFullscreen?.();
+    } else {
+      document.documentElement.requestFullscreen?.().catch(() => {});
+    }
+  });
+  document.addEventListener('fullscreenchange', updateLabel);
+  updateLabel();
+  document.body.appendChild(btn);
+  fullscreenButton = btn;
 }
 
 bootstrap();

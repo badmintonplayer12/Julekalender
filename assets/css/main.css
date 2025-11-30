@@ -178,6 +178,26 @@ button {
   to { opacity: 0; }
 }
 
+.fullscreen-btn {
+  position: fixed;
+  top: calc(var(--spacing-md) + env(safe-area-inset-top, 0px));
+  right: calc(var(--spacing-md) + env(safe-area-inset-right, 0px));
+  z-index: 50;
+  padding: 12px 14px;
+  border-radius: var(--border-radius);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(0, 0, 0, 0.45);
+  color: #ffffff;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+}
+
+.fullscreen-btn:hover,
+.fullscreen-btn:focus-visible {
+  background: rgba(0, 0, 0, 0.6);
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
 @media (prefers-reduced-motion: reduce) {
   .calendar-pin,
   .open-effect {
