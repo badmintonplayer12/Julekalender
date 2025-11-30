@@ -61,6 +61,7 @@ export async function handleRoute(route) {
 ### router.js
 Hash-basert ruting.
 
+{% raw %}
 ```javascript
 /**
  * @typedef {{ type: 'root' } | { type: 'day', id: string }} Route
@@ -87,6 +88,7 @@ export function updateHash(route) {
   }
 }
 ```
+{% endraw %}
 
 ### state.js
 Holder runtime-state og lagrer åpne luker i localStorage.
